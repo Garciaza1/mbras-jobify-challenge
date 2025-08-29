@@ -8,20 +8,19 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"net/url"
 	"os"
-
-	"database/sql"
 )
 
 type JobService struct {
 	UpsertJobService *UpsertJobService
 }
 
-func NewJobService(db *sql.DB) *JobService {
+func NewJobService(upsertService *UpsertJobService) *JobService {
 	return &JobService{
-		UpsertJobService: NewUpsertJobService(db),
+		UpsertJobService: upsertService,
 	}
 }
 
@@ -71,7 +70,14 @@ func (s *JobService) GetJobsFromRemotive(category string, limit string) ([]model
 	}
 
 	// vamos intanciar um outro service apenas para salvar no postgres
-	go s.UpsertJobService.UpsertJob(apiResponse.Jobs)
+	go func() {
+		log.Println("Goroutine de salvamento iniciada.")
+		if err := s.UpsertJobService.UpsertJobs(apiResponse.Jobs); err != nil {
+			log.Printf("Erro no salvamento assíncrono: %v", err)
+		} else {
+			log.Println("Salvamento assíncrono concluído com sucesso.")
+		}
+	}()
 
 	return apiResponse.Jobs, nil
 }

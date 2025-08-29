@@ -4,6 +4,7 @@ import (
 	"backend/models"
 	"database/sql"
 	"fmt"
+	"log"
 	"strings"
 	"time"
 )
@@ -13,15 +14,16 @@ type UpsertJobService struct {
 }
 
 func NewUpsertJobService(db *sql.DB) *UpsertJobService {
-
 	return &UpsertJobService{
 		DB: db,
 	}
 }
 
-func (s *UpsertJobService) UpsertJob(jobs []models.Job) error {
-	query := `
-			INSERT INTO favorite_jobs (
+func (s *UpsertJobService) UpsertJobs(jobs []models.Job) error {
+	for _, job := range jobs {
+		tagsStr := strings.Join(job.Tags, ",")
+		query := `
+			INSERT INTO jobs (
 				job_id,
 				title,
 				company_name,
@@ -48,30 +50,27 @@ func (s *UpsertJobService) UpsertJob(jobs []models.Job) error {
 				tags = EXCLUDED.tags,
 				updated_at = NOW();
 		`
-
-	for _, job := range jobs {
-		tagsStr := strings.Join(job.Tags, ",")
-
-	_, err := s.DB.Exec(
-		query,
-		job.ID,
-		job.Title,
-		job.Company,
-		job.Location,
-		job.Description,
-		job.JobType,
-		job.Category,
-		job.PublicationDate,
-		job.URL,
-		tagsStr,
-		false,
+		if _, err := s.DB.Exec(
+			query,
+			job.ID,
+			job.Title,
+			job.Company,
+			job.Location,
+			job.Description,
+			job.JobType,
+			job.Category,
+			job.PublicationDate,
+			job.URL,
+			tagsStr,
+			false,
 			time.Now(),
-		)
-
-		if err != nil {
-			return fmt.Errorf("erro ao salvar/atualizar vaga: %v", err)
+		); err != nil {
+			// Log the specific error for each job that fails to save
+			log.Printf("Erro ao salvar/atualizar a vaga com ID %d: %v", job.ID, err)
+			return fmt.Errorf("erro ao salvar/atualizar a vaga com ID %d: %v", job.ID, err)
 		}
+		// Log a success message for each job
+		log.Printf("Vaga com ID %d salva com sucesso!", job.ID)
 	}
-
 	return nil
 }

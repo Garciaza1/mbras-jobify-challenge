@@ -1,0 +1,29 @@
+# Estágio 1: Construir a aplicação Go
+FROM golang:1.24.2-alpine AS builder
+
+WORKDIR /app
+
+# Copiar os arquivos do módulo Go e baixar as dependências
+COPY go.mod go.sum ./
+RUN go mod download
+
+# Copiar o restante dos arquivos do projeto e construir o binário
+COPY . .
+RUN CGO_ENABLED=0 go build -o /go-api ./main.go
+
+# Estágio 2: Criar a imagem final otimizada
+FROM alpine:latest
+
+WORKDIR /app
+
+# Copiar o binário do estágio de construção
+COPY --from=builder /go-api .
+
+# Copiar o arquivo .env
+COPY .env .
+
+# Expor a porta que o seu servidor Go usa
+EXPOSE 8080
+
+# Comando para rodar a aplicação quando o container iniciar
+CMD ["/app/go-api"]
