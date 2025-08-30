@@ -1,6 +1,6 @@
 import { API_URL } from "./default";
 
-export default async function getJobs(jobID: string) {
+export default async function getJob(jobID: string) {
   try {
     const url = `${API_URL}/jobs?id=${jobID}`;
     const response = await fetch(url, {

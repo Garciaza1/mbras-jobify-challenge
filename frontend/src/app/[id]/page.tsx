@@ -7,12 +7,12 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { 
-  Calendar, 
-  MapPin, 
-  Building2, 
-  Globe, 
-  Clock, 
+import {
+  Calendar,
+  MapPin,
+  Building2,
+  Globe,
+  Clock,
   ArrowLeft,
   Share2,
   Bookmark,
@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import Header from '@/components/native/header';
+import getJob from '@/service/get_job';
 
 export default function JobDetailPage() {
   const params = useParams();
@@ -33,13 +34,17 @@ export default function JobDetailPage() {
   useEffect(() => {
     const fetchJob = async () => {
       try {
-        setIsLoading(true);
-        const response = await fetch(`/api/jobs?id=${params.id}`);
+        if (!params.id) {
+          throw new Error('ID da vaga não fornecido');
+        }
         
+        setIsLoading(true);
+        const response = await getJob(String(params.id));
+
         if (!response.ok) {
           throw new Error('Job não encontrado');
         }
-        
+
         const jobData = await response.json();
         setJob(jobData);
       } catch (err) {
@@ -86,7 +91,7 @@ export default function JobDetailPage() {
             <Skeleton className="h-10 w-3/4 mb-2" />
             <Skeleton className="h-5 w-1/2" />
           </div>
-          
+
           <div className="grid gap-6">
             <Card>
               <CardContent className="p-6">
@@ -128,7 +133,7 @@ export default function JobDetailPage() {
   return (
     <div className="min-h-screen bg-zinc-50">
       <Header />
-      
+
       <div className="container max-w-4xl py-8">
         {/* Header da vaga */}
         <div className="mb-8">
@@ -144,9 +149,9 @@ export default function JobDetailPage() {
               <Badge variant="secondary" className="mb-4 bg-zinc-200 text-zinc-800">
                 {job.category}
               </Badge>
-              
+
               <h1 className="text-3xl font-bold text-zinc-900 mb-2">{job.title}</h1>
-              
+
               <div className="flex items-center gap-4 text-zinc-600 mb-4">
                 <div className="flex items-center gap-1">
                   <Building2 className="h-4 w-4" />
@@ -177,8 +182,8 @@ export default function JobDetailPage() {
             </div>
 
             <div className="flex gap-2 lg:flex-col">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 size="lg"
                 className="border-zinc-300 hover:bg-zinc-100"
                 onClick={handleShare}
@@ -186,22 +191,21 @@ export default function JobDetailPage() {
                 <Share2 className="h-4 w-4 mr-2" />
                 Compartilhar
               </Button>
-              
-              <Button 
+
+              <Button
                 variant={isSaved ? "default" : "outline"}
                 size="lg"
-                className={`${
-                  isSaved 
-                    ? 'bg-zinc-900 hover:bg-zinc-800' 
-                    : 'border-zinc-300 hover:bg-zinc-100'
-                }`}
+                className={`${isSaved
+                  ? 'bg-zinc-900 hover:bg-zinc-800'
+                  : 'border-zinc-300 hover:bg-zinc-100'
+                  }`}
                 onClick={() => setIsSaved(!isSaved)}
               >
                 <Bookmark className={`h-4 w-4 mr-2 ${isSaved ? 'fill-white' : ''}`} />
                 {isSaved ? 'Salvo' : 'Salvar'}
               </Button>
-              
-              <Button 
+
+              <Button
                 size="lg"
                 className="bg-zinc-900 hover:bg-zinc-800"
                 asChild
@@ -223,7 +227,7 @@ export default function JobDetailPage() {
               <CardTitle className="text-xl text-zinc-900">Descrição da Vaga</CardTitle>
             </CardHeader>
             <CardContent>
-              <div 
+              <div
                 className="prose prose-zinc max-w-none"
                 dangerouslySetInnerHTML={{ __html: job.description }}
               />
@@ -245,7 +249,7 @@ export default function JobDetailPage() {
                     <p className="text-sm text-zinc-600">Empresa</p>
                   </div>
                 </div>
-                
+
                 <div className="flex items-center gap-3">
                   <MapPin className="h-5 w-5 text-zinc-600" />
                   <div>
@@ -253,7 +257,7 @@ export default function JobDetailPage() {
                     <p className="text-sm text-zinc-600">Localização</p>
                   </div>
                 </div>
-                
+
                 <div className="flex items-center gap-3">
                   <Globe className="h-5 w-5 text-zinc-600" />
                   <div>
@@ -277,7 +281,7 @@ export default function JobDetailPage() {
                     <p className="text-sm text-zinc-600">Tipo de contrato</p>
                   </div>
                 </div>
-                
+
                 <div className="flex items-center gap-3">
                   <Tag className="h-5 w-5 text-zinc-600" />
                   <div>
@@ -285,7 +289,7 @@ export default function JobDetailPage() {
                     <p className="text-sm text-zinc-600">Categoria</p>
                   </div>
                 </div>
-                
+
                 <div className="flex items-center gap-3">
                   <Calendar className="h-5 w-5 text-zinc-600" />
                   <div>
@@ -293,7 +297,7 @@ export default function JobDetailPage() {
                     <p className="text-sm text-zinc-600">Publicada em</p>
                   </div>
                 </div>
-                
+
                 <div className="flex items-center gap-3">
                   <Clock className="h-5 w-5 text-zinc-600" />
                   <div>
@@ -314,9 +318,9 @@ export default function JobDetailPage() {
               <CardContent>
                 <div className="flex flex-wrap gap-2">
                   {job.tags.length > 0 && job.tags.map((tag, index) => (
-                    <Badge 
-                      key={index} 
-                      variant="secondary" 
+                    <Badge
+                      key={index}
+                      variant="secondary"
                       className="bg-zinc-100 text-zinc-800 hover:bg-zinc-200"
                     >
                       {tag}
@@ -336,8 +340,8 @@ export default function JobDetailPage() {
                   Candidate-se agora e dê o próximo passo na sua carreira
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                  <Button 
-                    size="lg" 
+                  <Button
+                    size="lg"
                     variant="secondary"
                     className="bg-white text-zinc-900 hover:bg-zinc-100"
                     asChild
@@ -347,9 +351,9 @@ export default function JobDetailPage() {
                       <ExternalLink className="h-4 w-4 ml-2" />
                     </a>
                   </Button>
-                  <Button 
-                    size="lg" 
-                    variant="outline" 
+                  <Button
+                    size="lg"
+                    variant="outline"
                     className="border-white text-white hover:bg-zinc-800"
                     onClick={() => setIsSaved(!isSaved)}
                   >
