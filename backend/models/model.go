@@ -1,5 +1,7 @@
 package models
 
+import "time"
+
 type RemotiveAPIResponse struct {
 	Jobs []Job `json:"jobs"`
 }
@@ -15,6 +17,9 @@ type Job struct {
 	PublicationDate string   `json:"publication_date"`
 	URL             string   `json:"url"`
 	Tags            []string `json:"tags"`
+	IsFavorite      bool
+	CreatedAt       time.Time
+	UpdatedAt       time.Time
 }
 
 type JobsResponse struct {

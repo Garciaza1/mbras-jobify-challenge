@@ -11,6 +11,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Search, Filter, AlertCircle, } from "lucide-react";
+import Header from "@/components/native/header";
 
 const JobList = () => {
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -19,10 +20,8 @@ const JobList = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [locationFilter, setLocationFilter] = useState("all");
-  const [datePosted, setDatePosted] = useState("anytime");
   const [jobType, setJobType] = useState("all");
   const [error, setError] = useState<string | null>(null);
-  // const [salaryRange, setSalaryRange] = useState([0, 200]);
   const [showRemoteOnly, setShowRemoteOnly] = useState(false);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
@@ -84,16 +83,9 @@ const JobList = () => {
     setFilteredJobs(result);
   }, [jobs, searchQuery, selectedCategory, locationFilter, showRemoteOnly, jobType]);
 
-  // const formatDate = (dateString: string) => {
-  //   return new Date(dateString).toLocaleDateString('pt-BR', {
-  //     day: '2-digit',
-  //     month: '2-digit',
-  //     year: 'numeric'
-  //   });
-  // };
-
   return (
     <div className="min-h-screen bg-background">
+      <Header />
       <div className="container flex flex-col gap-8 py-8 md:flex-row">
         {/* Filtros Sidebar */}
         <aside className="hidden w-full md:block md:w-1/4 lg:w-1/5">
@@ -157,21 +149,6 @@ const JobList = () => {
                     <TabsTrigger value="list">Lista</TabsTrigger>
                   </TabsList>
                 </Tabs>
-
-                    
-                <div className="relative">
-                  só vai aparecer quando tiver jobs.length maior que 1
-                  <select
-                    value={datePosted}
-                    onChange={(e) => setDatePosted(e.target.value)}
-                    className="block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  >
-                    <option value="anytime">Qualquer data</option>
-                    <option value="today">Últimas 24h</option>
-                    <option value="week">Última semana</option>
-                    <option value="month">Último mês</option>
-                  </select>
-                </div>
               </div>
             </div>
           </div>

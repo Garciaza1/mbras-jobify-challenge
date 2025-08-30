@@ -65,11 +65,9 @@ func (s *UpsertJobService) UpsertJobs(jobs []models.Job) error {
 			false,
 			time.Now(),
 		); err != nil {
-			// Log the specific error for each job that fails to save
 			log.Printf("Erro ao salvar/atualizar a vaga com ID %d: %v", job.ID, err)
 			return fmt.Errorf("erro ao salvar/atualizar a vaga com ID %d: %v", job.ID, err)
 		}
-		// Log a success message for each job
 		log.Printf("Vaga com ID %d salva com sucesso!", job.ID)
 	}
 	return nil

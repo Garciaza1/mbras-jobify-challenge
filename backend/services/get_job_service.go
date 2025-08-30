@@ -1,7 +1,9 @@
 package services
 
 // vai pegar os dados da api e retornar para o controller (salvar no banco de dados numa go routine)
-//vai ser event driven
+// vai ser event driven
+// vai verificar se os dados já existem no banco antes de enviar
+// caso tenha, vai enviar contendo o campo favorited
 
 import (
 	"backend/models"
@@ -69,7 +71,22 @@ func (s *JobService) GetJobsFromRemotive(category string, limit string) ([]model
 		return nil, fmt.Errorf("erro ao decodificar a resposta JSON: %v", err)
 	}
 
-	// vamos intanciar um outro service apenas para salvar no postgres
+	// Obter IDs de vagas favoritas do banco de dados
+	favoriteIDs, err := s.UpsertJobService.GetFavoriteJobIDs()
+	if err != nil {
+		log.Printf("Aviso: Não foi possível obter IDs de favoritos, exibindo todos como não favoritos: %v", err)
+	}
+
+	// juntar na resposta
+	jobsToReturn := make([]models.Job, 0, len(apiResponse.Jobs))
+	for _, job := range apiResponse.Jobs {
+		if _, ok := favoriteIDs[job.ID]; ok {
+			job.IsFavorite = true
+		}
+		jobsToReturn = append(jobsToReturn, job)
+	}
+
+	// salvar no banco de dados em segundo plano
 	go func() {
 		log.Println("Goroutine de salvamento iniciada.")
 		if err := s.UpsertJobService.UpsertJobs(apiResponse.Jobs); err != nil {
@@ -79,5 +96,5 @@ func (s *JobService) GetJobsFromRemotive(category string, limit string) ([]model
 		}
 	}()
 
-	return apiResponse.Jobs, nil
+	return jobsToReturn, nil
 }
