@@ -1,17 +1,40 @@
+// components/native/JobCard.tsx
 import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../ui/card";
 import { Button } from "../ui/button";
 import { Job } from '@/lib/types';
-import { MapPin, Clock, Bookmark, Share2, Eye, Building2 } from "lucide-react";
+import { MapPin, Clock, Heart, Building2 } from "lucide-react";
 import { Badge } from "../ui/badge";
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { useState } from 'react';
+import toggleFavorite from '@/service/toggle_favorite';
 
-const JobCard = ({ job, viewMode = "grid" }: { job: Job, viewMode?: "grid" | "list" }) => {
+const JobCard = ({ job, viewMode = "grid", isFavorite = false }: { job: Job, viewMode?: "grid" | "list", isFavorite?: boolean }) => {
+  const [favorite, setFavorite] = useState(isFavorite);
+  const [isToggling, setIsToggling] = useState(false);
+
   const timeAgo = formatDistanceToNow(new Date(job.publication_date), { 
     addSuffix: true, 
     locale: ptBR 
   });
+
+  const handleToggleFavorite = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    setIsToggling(true);
+    try {
+      const success = await toggleFavorite(job.id);
+      if (success) {
+        setFavorite(!favorite);
+      }
+    } catch (error) {
+      console.error("Error toggling favorite:", error);
+    } finally {
+      setIsToggling(false);
+    }
+  };
 
   if (viewMode === "list") {
     return (
@@ -36,14 +59,17 @@ const JobCard = ({ job, viewMode = "grid" }: { job: Job, viewMode?: "grid" | "li
                   </span>
                 </CardDescription>
               </div>
-              <div className="flex gap-1">
-                <Button variant="ghost" size="icon" className="h-8 w-8">
-                  <Bookmark className="h-4 w-4" />
-                </Button>
-                <Button variant="ghost" size="icon" className="h-8 w-8">
-                  <Share2 className="h-4 w-4" />
-                </Button>
-              </div>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-8 w-8"
+                onClick={handleToggleFavorite}
+                disabled={isToggling}
+              >
+                <Heart 
+                  className={`h-4 w-4 ${favorite ? 'fill-red-500 text-red-500' : 'text-gray-400'}`} 
+                />
+              </Button>
             </div>
           </CardHeader>
           
@@ -63,15 +89,9 @@ const JobCard = ({ job, viewMode = "grid" }: { job: Job, viewMode?: "grid" | "li
               <Clock className="h-4 w-4 mr-1" />
               {timeAgo}
             </div>
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm" className="gap-1">
-                <Eye className="h-4 w-4" />
-                Visualizar
-              </Button>
-              <Link href={`/jobs/${job.id}`} className="flex-1">
-                <Button size="sm" className="w-full">Candidatar-se</Button>
-              </Link>
-            </div>
+            <Link href={`/jobs/${job.id}`}>
+              <Button size="sm">Ver Detalhes</Button>
+            </Link>
           </CardFooter>
         </div>
       </Card>
@@ -94,8 +114,16 @@ const JobCard = ({ job, viewMode = "grid" }: { job: Job, viewMode?: "grid" | "li
               </span>
             </CardDescription>
           </div>
-          <Button variant="ghost" size="icon" className="h-8 w-8">
-            <Bookmark className="h-4 w-4" />
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="h-8 w-8"
+            onClick={handleToggleFavorite}
+            disabled={isToggling}
+          >
+            <Heart 
+              className={`h-4 w-4 ${favorite ? 'fill-red-500 text-red-500' : 'text-gray-400'}`} 
+            />
           </Button>
         </div>
       </CardHeader>
@@ -116,8 +144,8 @@ const JobCard = ({ job, viewMode = "grid" }: { job: Job, viewMode?: "grid" | "li
           <Clock className="h-4 w-4 mr-1" />
           {timeAgo}
         </div>
-        <Link href={`/jobs/${job.id}`} className="flex-1">
-          <Button className="w-full">Ver Detalhes</Button>
+        <Link href={`/jobs/${job.id}`}>
+          <Button>Ver Detalhes</Button>
         </Link>
       </CardFooter>
     </Card>

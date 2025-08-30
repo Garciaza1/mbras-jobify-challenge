@@ -5,7 +5,7 @@ export default async function getJobs(limit?: string, category?: string) {
     if (!limit) limit = "20";
     if (!category) category = "";
     
-    const url = `${API_URL}?limit=${limit}${category ? `&category=${encodeURIComponent(category)}` : ''}`;
+    const url = `${API_URL}/jobs?limit=${limit}${category ? `&category=${encodeURIComponent(category)}` : ''}`;
     const response = await fetch(url, {
       cache: 'no-store',
       headers: {

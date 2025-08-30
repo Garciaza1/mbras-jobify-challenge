@@ -2,6 +2,7 @@
 import JobCard from "@/components/native/JobCard";
 import { Job } from "@/lib/types";
 import getJobs from "@/service/get_jobs";
+import getFavorites from "@/service/get_favorites";
 import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -10,13 +11,15 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
-import { Search, Filter, AlertCircle, } from "lucide-react";
+import { Search, Filter, AlertCircle, Heart, Bookmark } from "lucide-react";
 import Header from "@/components/native/header";
 
 const JobList = () => {
   const [jobs, setJobs] = useState<Job[]>([]);
+  const [favorites, setFavorites] = useState<Job[]>([]);
   const [filteredJobs, setFilteredJobs] = useState<Job[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingFavorites, setIsLoadingFavorites] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [locationFilter, setLocationFilter] = useState("all");
@@ -24,24 +27,26 @@ const JobList = () => {
   const [error, setError] = useState<string | null>(null);
   const [showRemoteOnly, setShowRemoteOnly] = useState(false);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [activeTab, setActiveTab] = useState<"all" | "favorites">("all");
 
-  // Extrair categorias únicas para filtros
-  const categories = ["all", ...new Set(jobs.map(job => job.category))];
+  // Categorias pré-definidas para o filtro
+  const categories = [
+    "all", "Software Development", "Design", "Marketing", "Customer Service", 
+    "DevOps", "Finance", "HR", "Product", "Sales", "Writing", "Other"
+  ];
 
   useEffect(() => {
     const fetchJobs = async () => {
       try {
         setIsLoading(true);
         setError(null);
-        const jobsData = await getJobs();
+        
+        // Passa a categoria selecionada para o backend (exceto "all")
+        const categoryParam = selectedCategory === "all" ? "" : selectedCategory;
+        const jobsData = await getJobs("20", categoryParam);
 
-        if (jobsData.error) {
-          setError(jobsData.error);
-          setJobs([]);
-        } else {
-          setJobs(jobsData);
-          setFilteredJobs(jobsData);
-        }
+        setJobs(jobsData);
+        setFilteredJobs(jobsData);
       } catch (error) {
         console.error("Error fetching jobs:", error);
         setError("Erro ao carregar vagas");
@@ -50,11 +55,31 @@ const JobList = () => {
         setIsLoading(false);
       }
     };
+    
     fetchJobs();
-  }, []);
+  }, [selectedCategory]); // Recarrega quando a categoria muda
 
   useEffect(() => {
-    let result = jobs;
+    const fetchFavorites = async () => {
+      if (activeTab === "favorites") {
+        try {
+          setIsLoadingFavorites(true);
+          const favoritesData = await getFavorites();
+          setFavorites(favoritesData);
+        } catch (error) {
+          console.error("Error fetching favorites:", error);
+          setFavorites([]);
+        } finally {
+          setIsLoadingFavorites(false);
+        }
+      }
+    };
+    
+    fetchFavorites();
+  }, [activeTab]);
+
+  useEffect(() => {
+    let result = activeTab === "favorites" ? favorites : jobs;
 
     if (searchQuery) {
       result = result.filter(job =>
@@ -64,7 +89,7 @@ const JobList = () => {
       );
     }
 
-    if (selectedCategory !== "all") {
+    if (selectedCategory !== "all" && activeTab !== "favorites") {
       result = result.filter(job => job.category === selectedCategory);
     }
 
@@ -81,7 +106,15 @@ const JobList = () => {
     }
 
     setFilteredJobs(result);
-  }, [jobs, searchQuery, selectedCategory, locationFilter, showRemoteOnly, jobType]);
+  }, [jobs, favorites, searchQuery, selectedCategory, locationFilter, showRemoteOnly, jobType, activeTab]);
+
+  const handleClearFilters = () => {
+    setSearchQuery("");
+    setSelectedCategory("all");
+    setLocationFilter("all");
+    setJobType("all");
+    setShowRemoteOnly(false);
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -93,24 +126,90 @@ const JobList = () => {
             <CardContent className="pt-6">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-lg font-semibold">Filtros</h2>
-                <Button variant="ghost" size="sm">
+                <Button variant="ghost" size="sm" onClick={handleClearFilters}>
                   Limpar
                 </Button>
               </div>
+              
               <div className="space-y-6">
+                {/* Tabs para Todos vs Favoritos */}
                 <div className="space-y-3">
-                  <Label>Categoria Frontend</Label>
+                  <Label>Visualizar</Label>
+                  <Tabs 
+                    value={activeTab} 
+                    onValueChange={(v) => setActiveTab(v as "all" | "favorites")}
+                    className="w-full"
+                  >
+                    <TabsList className="grid w-full grid-cols-2">
+                      <TabsTrigger value="all">Todas</TabsTrigger>
+                      <TabsTrigger value="favorites">Favoritas</TabsTrigger>
+                    </TabsList>
+                  </Tabs>
+                </div>
+
+                {/* Filtro de Categoria (só aparece na tab "Todas") */}
+                {activeTab === "all" && (
+                  <div className="space-y-3">
+                    <Label>Categoria</Label>
+                    <select
+                      value={selectedCategory}
+                      onChange={(e) => setSelectedCategory(e.target.value)}
+                      className="block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    >
+                      {categories.map(category => (
+                        <option key={category} value={category}>
+                          {category === "all" ? "Todas categorias" : category}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
+                {/* Outros filtros (funcionam em ambas as tabs) */}
+                <div className="space-y-3">
+                  <Label>Localização</Label>
                   <select
-                    value={selectedCategory}
-                    onChange={(e) => setSelectedCategory(e.target.value)}
+                    value={locationFilter}
+                    onChange={(e) => setLocationFilter(e.target.value)}
                     className="block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                   >
-                    {categories.map(category => (
-                      <option key={category} value={category}>
-                        {category === "all" ? "Todas categorias" : category}
-                      </option>
-                    ))}
+                    <option value="all">Todas localizações</option>
+                    <option value="Remote">Remoto</option>
+                    <option value="USA">EUA</option>
+                    <option value="Europe">Europa</option>
+                    <option value="Worldwide">Mundial</option>
                   </select>
+                </div>
+
+                <div className="space-y-3">
+                  <Label>Tipo de Vaga</Label>
+                  <select
+                    value={jobType}
+                    onChange={(e) => setJobType(e.target.value)}
+                    className="block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  >
+                    <option value="all">Todos os tipos</option>
+                    <option value="full_time">Tempo integral</option>
+                    <option value="part_time">Meio período</option>
+                    <option value="contract">Contrato</option>
+                    <option value="freelance">Freelance</option>
+                  </select>
+                </div>
+
+                <div className="space-y-3">
+                  <Label htmlFor="remote-only">Apenas Remotas</Label>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id="remote-only"
+                      checked={showRemoteOnly}
+                      onChange={(e) => setShowRemoteOnly(e.target.checked)}
+                      className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    <Label htmlFor="remote-only" className="text-sm">
+                      {showRemoteOnly ? "Sim" : "Não"}
+                    </Label>
+                  </div>
                 </div>
               </div>
             </CardContent>
@@ -134,7 +233,12 @@ const JobList = () => {
             <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
               <div className="flex items-center gap-2">
                 <Badge variant="secondary" className="flex items-center gap-1">
-                  {filteredJobs.length} vagas encontradas
+                  {activeTab === "favorites" ? (
+                    <Heart className="h-3 w-3" />
+                  ) : (
+                    <Bookmark className="h-3 w-3" />
+                  )}
+                  {filteredJobs.length} {activeTab === "favorites" ? "favoritas" : "vagas"} encontradas
                 </Badge>
                 <Button variant="outline" size="sm" className="md:hidden">
                   <Filter className="mr-2 h-4 w-4" />
@@ -154,7 +258,7 @@ const JobList = () => {
           </div>
 
           {/* Lista de vagas */}
-          {isLoading ? (
+          {(isLoading || (activeTab === "favorites" && isLoadingFavorites)) ? (
             <div className={viewMode === "grid" ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" : "space-y-4"}>
               {[...Array(6)].map((_, i) => (
                 <Card key={i} className="h-full overflow-hidden">
@@ -179,7 +283,12 @@ const JobList = () => {
           ) : filteredJobs.length > 0 ? (
             <div className={viewMode === "grid" ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" : "space-y-4"}>
               {filteredJobs.map((job: Job) => (
-                <JobCard key={job.id} job={job} viewMode={viewMode} />
+                <JobCard 
+                  key={job.id} 
+                  job={job} 
+                  viewMode={viewMode} 
+                  isFavorite={job.is_favorite}
+                />
               ))}
             </div>
           ) : (
@@ -187,17 +296,16 @@ const JobList = () => {
               <div className="rounded-full bg-muted p-4 mb-4">
                 <Search className="h-8 w-8 text-muted-foreground" />
               </div>
-              <h3 className="text-lg font-medium mb-2">Nenhuma vaga encontrada</h3>
+              <h3 className="text-lg font-medium mb-2">
+                {activeTab === "favorites" ? "Nenhuma vaga favorita encontrada" : "Nenhuma vaga encontrada"}
+              </h3>
               <p className="text-muted-foreground mb-6">
-                Tente ajustar seus filtros ou termos de pesquisa para encontrar mais resultados.
+                {activeTab === "favorites" 
+                  ? "Marque algumas vagas como favoritas para vê-las aqui."
+                  : "Tente ajustar seus filtros ou termos de pesquisa para encontrar mais resultados."
+                }
               </p>
-              <Button onClick={() => {
-                setSearchQuery("");
-                setSelectedCategory("all");
-                setLocationFilter("all");
-                setJobType("all");
-                setShowRemoteOnly(false);
-              }}>
+              <Button onClick={handleClearFilters}>
                 Limpar filtros
               </Button>
             </div>

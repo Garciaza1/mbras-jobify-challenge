@@ -35,7 +35,6 @@ services:
       dockerfile: Dockerfile
     container_name: go_backend
     environment:
-      # O backend vai se conectar ao banco de dados usando o nome do serviço 'db' como host
       DB_HOST: db 
       DB_PORT: 5432
       DB_NAME: jobs_db

@@ -9,4 +9,5 @@ export interface Job {
   publication_date: string;
   url: string;
   tags: string[];
+  is_favorite: boolean;
 }
