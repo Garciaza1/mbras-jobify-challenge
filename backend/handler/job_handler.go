@@ -9,8 +9,6 @@ import (
 
 type JobHandler struct {
 	JobService *services.JobService
-	ToggleFavoriteJobService *services.ToggleFavoriteJobService
-	GetFavoriteJobService *services.GetFavoriteJobService
 }
 
 type FavoriteRequest struct {
@@ -44,8 +42,7 @@ func (h *JobHandler) ToggleFavoriteJob(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	
-	// O handler apenas se comunica com o JobService
-	if err := h.ToggleFavoriteJobService.ToggleFavorite(favReq.JobID); err != nil {
+	if err := h.JobService.ToggleFavorite(favReq.JobID); err != nil {
 		log.Printf("Erro ao alternar favorito para a vaga %d: %v", favReq.JobID, err)
 		http.Error(w, "Erro interno ao atualizar a vaga favorita", http.StatusInternalServerError)
 		return
@@ -56,7 +53,7 @@ func (h *JobHandler) ToggleFavoriteJob(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *JobHandler) GetFavoriteJobs(w http.ResponseWriter, r *http.Request) {
-	jobs, err := h.GetFavoriteJobService.GetFavorites()
+	jobs, err := h.JobService.GetFavorites()
 	if err != nil {
 		log.Printf("Erro ao listar vagas favoritas: %v", err)
 		http.Error(w, "Erro interno ao buscar vagas favoritas", http.StatusInternalServerError)

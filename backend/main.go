@@ -26,8 +26,7 @@ func main() {
 	}
 	defer db.Close()
 
-	upsertService := services.NewUpsertJobService(db)
-	jobService := services.NewJobService(upsertService)
+	jobService := services.NewJobService(db)
 	jobHandler := handler.NewJobHandler(jobService)
 
 	router := mux.NewRouter()

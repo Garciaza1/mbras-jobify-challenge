@@ -1,4 +1,3 @@
-// components/native/JobCard.tsx
 import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../ui/card";
 import { Button } from "../ui/button";

@@ -22,10 +22,7 @@ const JobList = () => {
   const [isLoadingFavorites, setIsLoadingFavorites] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
-  const [locationFilter, setLocationFilter] = useState("all");
-  const [jobType, setJobType] = useState("all");
   const [error, setError] = useState<string | null>(null);
-  const [showRemoteOnly, setShowRemoteOnly] = useState(false);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [activeTab, setActiveTab] = useState<"all" | "favorites">("all");
 
@@ -93,27 +90,12 @@ const JobList = () => {
       result = result.filter(job => job.category === selectedCategory);
     }
 
-    if (locationFilter !== "all") {
-      result = result.filter(job => job.candidate_required_location === locationFilter);
-    }
-
-    if (showRemoteOnly) {
-      result = result.filter(job => job.candidate_required_location.toLowerCase().includes("remote"));
-    }
-
-    if (jobType !== "all") {
-      result = result.filter(job => job.job_type === jobType);
-    }
-
     setFilteredJobs(result);
-  }, [jobs, favorites, searchQuery, selectedCategory, locationFilter, showRemoteOnly, jobType, activeTab]);
+  }, [jobs, favorites, searchQuery, selectedCategory, activeTab]);
 
   const handleClearFilters = () => {
     setSearchQuery("");
     setSelectedCategory("all");
-    setLocationFilter("all");
-    setJobType("all");
-    setShowRemoteOnly(false);
   };
 
   return (
@@ -164,53 +146,6 @@ const JobList = () => {
                     </select>
                   </div>
                 )}
-
-                {/* Outros filtros (funcionam em ambas as tabs) */}
-                <div className="space-y-3">
-                  <Label>Localização</Label>
-                  <select
-                    value={locationFilter}
-                    onChange={(e) => setLocationFilter(e.target.value)}
-                    className="block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  >
-                    <option value="all">Todas localizações</option>
-                    <option value="Remote">Remoto</option>
-                    <option value="USA">EUA</option>
-                    <option value="Europe">Europa</option>
-                    <option value="Worldwide">Mundial</option>
-                  </select>
-                </div>
-
-                <div className="space-y-3">
-                  <Label>Tipo de Vaga</Label>
-                  <select
-                    value={jobType}
-                    onChange={(e) => setJobType(e.target.value)}
-                    className="block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  >
-                    <option value="all">Todos os tipos</option>
-                    <option value="full_time">Tempo integral</option>
-                    <option value="part_time">Meio período</option>
-                    <option value="contract">Contrato</option>
-                    <option value="freelance">Freelance</option>
-                  </select>
-                </div>
-
-                <div className="space-y-3">
-                  <Label htmlFor="remote-only">Apenas Remotas</Label>
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="checkbox"
-                      id="remote-only"
-                      checked={showRemoteOnly}
-                      onChange={(e) => setShowRemoteOnly(e.target.checked)}
-                      className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                    />
-                    <Label htmlFor="remote-only" className="text-sm">
-                      {showRemoteOnly ? "Sim" : "Não"}
-                    </Label>
-                  </div>
-                </div>
               </div>
             </CardContent>
           </Card>
