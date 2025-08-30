@@ -28,7 +28,7 @@ const JobList = () => {
 
   // Categorias pré-definidas para o filtro
   const categories = [
-    "all", "Software Development", "Design", "Marketing", "Customer Service", 
+    "all", "Software Development", "Design", "Marketing", "Customer Service",
     "DevOps", "Finance", "HR", "Product", "Sales", "Writing", "Other"
   ];
 
@@ -37,7 +37,7 @@ const JobList = () => {
       try {
         setIsLoading(true);
         setError(null);
-        
+
         // Passa a categoria selecionada para o backend (exceto "all")
         const categoryParam = selectedCategory === "all" ? "" : selectedCategory;
         const jobsData = await getJobs("20", categoryParam);
@@ -52,7 +52,7 @@ const JobList = () => {
         setIsLoading(false);
       }
     };
-    
+
     fetchJobs();
   }, [selectedCategory]); // Recarrega quando a categoria muda
 
@@ -71,7 +71,7 @@ const JobList = () => {
         }
       }
     };
-    
+
     fetchFavorites();
   }, [activeTab]);
 
@@ -112,13 +112,13 @@ const JobList = () => {
                   Limpar
                 </Button>
               </div>
-              
+
               <div className="space-y-6">
                 {/* Tabs para Todos vs Favoritos */}
                 <div className="space-y-3">
                   <Label>Visualizar</Label>
-                  <Tabs 
-                    value={activeTab} 
+                  <Tabs
+                    value={activeTab}
                     onValueChange={(v) => setActiveTab(v as "all" | "favorites")}
                     className="w-full"
                   >
@@ -173,7 +173,13 @@ const JobList = () => {
                   ) : (
                     <Bookmark className="h-3 w-3" />
                   )}
-                  {filteredJobs.length} {activeTab === "favorites" ? "favoritas" : "vagas"} encontradas
+                  {filteredJobs.length > 0 ? (
+                    <span>
+                      {filteredJobs.length} {activeTab === "favorites" ? "favoritas" : "vagas"} encontradas
+                    </span>
+                  ) : (
+                    <span>Nenhuma {activeTab === "favorites" ? "favorita" : "vaga"} encontrada</span>
+                  )}
                 </Badge>
                 <Button variant="outline" size="sm" className="md:hidden">
                   <Filter className="mr-2 h-4 w-4" />
@@ -218,10 +224,10 @@ const JobList = () => {
           ) : filteredJobs.length > 0 ? (
             <div className={viewMode === "grid" ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" : "space-y-4"}>
               {filteredJobs.map((job: Job) => (
-                <JobCard 
-                  key={job.id} 
-                  job={job} 
-                  viewMode={viewMode} 
+                <JobCard
+                  key={job.id}
+                  job={job}
+                  viewMode={viewMode}
                   isFavorite={job.is_favorite}
                 />
               ))}
@@ -235,7 +241,7 @@ const JobList = () => {
                 {activeTab === "favorites" ? "Nenhuma vaga favorita encontrada" : "Nenhuma vaga encontrada"}
               </h3>
               <p className="text-muted-foreground mb-6">
-                {activeTab === "favorites" 
+                {activeTab === "favorites"
                   ? "Marque algumas vagas como favoritas para vê-las aqui."
                   : "Tente ajustar seus filtros ou termos de pesquisa para encontrar mais resultados."
                 }
