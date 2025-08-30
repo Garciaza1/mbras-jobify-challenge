@@ -132,7 +132,8 @@ func (s *JobService) GetJobByID(jobID int64) (*models.Job, error) {
 
 	var job models.Job
 	var tags string
-	var createdAt, updatedAt time.Time
+	var createdAt time.Time
+	var updatedAt sql.NullTime
 
 	err := row.Scan(
 		&job.ID, &job.Title, &job.Company, &job.Location, &job.Description,
@@ -180,7 +181,8 @@ func (s *JobService) GetFavorites() ([]models.Job, error) {
 	for rows.Next() {
 		var job models.Job
 		var tags string
-		var createdAt, updatedAt time.Time
+		var createdAt time.Time
+        var updatedAt sql.NullTime 
 
 		if err := rows.Scan(
 			&job.ID, &job.Title, &job.Company, &job.Location, &job.Description,

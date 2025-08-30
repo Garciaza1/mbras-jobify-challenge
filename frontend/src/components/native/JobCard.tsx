@@ -9,25 +9,21 @@ import { ptBR } from 'date-fns/locale';
 import { useState } from 'react';
 import toggleFavorite from '@/service/toggle_favorite';
 
-const JobCard = ({ job, viewMode = "grid", isFavorite = false }: { job: Job, viewMode?: "grid" | "list", isFavorite?: boolean }) => {
-  const [favorite, setFavorite] = useState(isFavorite);
+const JobCard = ({ job, viewMode = "grid" }: { job: Job; viewMode?: "grid" | "list" }) => {
   const [isToggling, setIsToggling] = useState(false);
 
-  const timeAgo = formatDistanceToNow(new Date(job.publication_date), { 
-    addSuffix: true, 
-    locale: ptBR 
+  const timeAgo = formatDistanceToNow(new Date(job.publication_date), {
+    addSuffix: true,
+    locale: ptBR
   });
 
   const handleToggleFavorite = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     setIsToggling(true);
     try {
-      const success = await toggleFavorite(job.id);
-      if (success) {
-        setFavorite(!favorite);
-      }
+      await toggleFavorite(job.id);
     } catch (error) {
       console.error("Error toggling favorite:", error);
     } finally {
@@ -43,7 +39,7 @@ const JobCard = ({ job, viewMode = "grid", isFavorite = false }: { job: Job, vie
             <Building2 className="h-8 w-8 text-muted-foreground" />
           </div>
         </div>
-        
+
         <div className="flex-1">
           <CardHeader className="pb-3">
             <div className="flex justify-between items-start">
@@ -58,31 +54,31 @@ const JobCard = ({ job, viewMode = "grid", isFavorite = false }: { job: Job, vie
                   </span>
                 </CardDescription>
               </div>
-              <Button 
-                variant="ghost" 
-                size="icon" 
+              <Button
+                variant="ghost"
+                size="icon"
                 className="h-8 w-8"
                 onClick={handleToggleFavorite}
                 disabled={isToggling}
               >
-                <Heart 
-                  className={`h-4 w-4 ${favorite ? 'fill-red-500 text-red-500' : 'text-gray-400'}`} 
+                <Heart
+                  className={`h-4 w-4 ${job.is_favorite ? 'fill-red-500 text-red-500' : 'text-gray-400'}`}
                 />
               </Button>
             </div>
           </CardHeader>
-          
+
           <CardContent className="pb-3">
             <div className="flex flex-wrap gap-2 mb-3">
               <Badge variant="secondary">{job.category}</Badge>
               <Badge variant="outline">{job.job_type}</Badge>
             </div>
-            
+
             <div className="text-sm text-muted-foreground line-clamp-2">
               {job.description.replace(/<[^>]*>/g, '').substring(0, 150)}...
             </div>
           </CardContent>
-          
+
           <CardFooter className="flex justify-between">
             <div className="flex items-center text-sm text-muted-foreground">
               <Clock className="h-4 w-4 mr-1" />
@@ -97,7 +93,6 @@ const JobCard = ({ job, viewMode = "grid", isFavorite = false }: { job: Job, vie
     );
   }
 
-  // Modo grid (padrão)
   return (
     <Card className="flex flex-col h-full hover:shadow-lg transition-shadow overflow-hidden group">
       <CardHeader className="pb-3">
@@ -113,31 +108,31 @@ const JobCard = ({ job, viewMode = "grid", isFavorite = false }: { job: Job, vie
               </span>
             </CardDescription>
           </div>
-          <Button 
-            variant="ghost" 
-            size="icon" 
+          <Button
+            variant="ghost"
+            size="icon"
             className="h-8 w-8"
             onClick={handleToggleFavorite}
             disabled={isToggling}
           >
-            <Heart 
-              className={`h-4 w-4 ${favorite ? 'fill-red-500 text-red-500' : 'text-gray-400'}`} 
+            <Heart
+              className={`h-4 w-4 ${job.is_favorite ? 'fill-red-500 text-red-500' : 'text-gray-400'}`}
             />
           </Button>
         </div>
       </CardHeader>
-      
+
       <CardContent className="pb-3 flex-1">
         <div className="flex flex-wrap gap-2 mb-3">
           <Badge variant="secondary">{job.category}</Badge>
           <Badge variant="outline">{job.job_type}</Badge>
         </div>
-        
+
         <div className="text-sm text-muted-foreground line-clamp-3">
           {job.description.replace(/<[^>]*>/g, '').substring(0, 120)}...
         </div>
       </CardContent>
-      
+
       <CardFooter className="flex justify-between pt-3">
         <div className="flex items-center text-sm text-muted-foreground">
           <Clock className="h-4 w-4 mr-1" />

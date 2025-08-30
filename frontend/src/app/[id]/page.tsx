@@ -15,10 +15,10 @@ import {
   Clock,
   ArrowLeft,
   Share2,
-  Bookmark,
   ExternalLink,
   Briefcase,
-  Tag
+  Tag,
+  Heart
 } from 'lucide-react';
 import Link from 'next/link';
 import Header from '@/components/native/header';
@@ -29,7 +29,7 @@ export default function JobDetailPage() {
   const [job, setJob] = useState<Job | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isSaved, setIsSaved] = useState(false);
+  const [isFavorite, setIsFavorite] = useState(false);
 
   useEffect(() => {
     const fetchJob = async () => {
@@ -37,23 +37,22 @@ export default function JobDetailPage() {
         if (!params.id) {
           throw new Error('ID da vaga não fornecido');
         }
-        
         setIsLoading(true);
-        const response = await getJob(String(params.id));
+        setError(null);
 
-        if (!response.ok) {
+        const jobData = await getJob(String(params.id));
+        if (!jobData) {
           throw new Error('Job não encontrado');
         }
 
-        const jobData = await response.json();
         setJob(jobData);
+        setIsFavorite(jobData.is_favorite || false);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Erro ao carregar vaga');
       } finally {
         setIsLoading(false);
       }
     };
-
     fetchJob();
   }, [params.id]);
 
@@ -85,7 +84,7 @@ export default function JobDetailPage() {
     return (
       <div className="min-h-screen bg-zinc-50">
         <Header />
-        <div className="container max-w-4xl py-8">
+        <div className="p-4">
           <div className="mb-6">
             <Skeleton className="h-6 w-32 mb-4" />
             <Skeleton className="h-10 w-3/4 mb-2" />
@@ -114,7 +113,7 @@ export default function JobDetailPage() {
     return (
       <div className="min-h-screen bg-zinc-50">
         <Header />
-        <div className="container max-w-4xl py-8">
+        <div className="p-4">
           <div className="text-center py-12">
             <h1 className="text-2xl font-semibold text-zinc-900 mb-4">Vaga não encontrada</h1>
             <p className="text-zinc-600 mb-8">{error}</p>
@@ -134,10 +133,10 @@ export default function JobDetailPage() {
     <div className="min-h-screen bg-zinc-50">
       <Header />
 
-      <div className="container max-w-4xl py-8">
+      <div className="p-4">
         {/* Header da vaga */}
         <div className="mb-8">
-          <Link href="/jobs">
+          <Link href="/">
             <Button variant="ghost" className="mb-6 text-zinc-600 hover:text-zinc-900">
               <ArrowLeft className="mr-2 h-4 w-4" />
               Voltar para vagas
@@ -193,16 +192,16 @@ export default function JobDetailPage() {
               </Button>
 
               <Button
-                variant={isSaved ? "default" : "outline"}
+                variant={isFavorite ? "default" : "outline"}
                 size="lg"
-                className={`${isSaved
+                className={`${isFavorite
                   ? 'bg-zinc-900 hover:bg-zinc-800'
                   : 'border-zinc-300 hover:bg-zinc-100'
                   }`}
-                onClick={() => setIsSaved(!isSaved)}
+                onClick={() => setIsFavorite(!isFavorite)}
               >
-                <Bookmark className={`h-4 w-4 mr-2 ${isSaved ? 'fill-white' : ''}`} />
-                {isSaved ? 'Salvo' : 'Salvar'}
+                <Heart className={`h-4 w-4 mr-2 ${isFavorite ? 'fill-white' : ''}`} />
+                {isFavorite ? 'Favorito' : 'Favoritar'}
               </Button>
 
               <Button
@@ -310,7 +309,7 @@ export default function JobDetailPage() {
           </div>
 
           {/* Tags e habilidades */}
-          {job.tags.length > 0 && (
+          {job.tags && job.tags.length > 0 && (
             <Card className="border-zinc-200">
               <CardHeader>
                 <CardTitle className="text-lg text-zinc-900">Habilidades Requeridas</CardTitle>
@@ -350,15 +349,6 @@ export default function JobDetailPage() {
                       Candidatar-se Agora
                       <ExternalLink className="h-4 w-4 ml-2" />
                     </a>
-                  </Button>
-                  <Button
-                    size="lg"
-                    variant="outline"
-                    className="border-white text-white hover:bg-zinc-800"
-                    onClick={() => setIsSaved(!isSaved)}
-                  >
-                    <Bookmark className={`h-4 w-4 mr-2 ${isSaved ? 'fill-white' : ''}`} />
-                    {isSaved ? 'Remover dos Salvos' : 'Salvar para Depois'}
                   </Button>
                 </div>
               </div>

@@ -11,5 +11,5 @@ CREATE TABLE IF NOT EXISTS jobs (
     tags TEXT,
     is_favorite BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP,
-    updated_at TIMESTAMP
+    updated_at TIMESTAMP NULL
 );

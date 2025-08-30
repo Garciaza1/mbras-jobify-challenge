@@ -217,7 +217,6 @@ const JobList = () => {
                   key={job.id}
                   job={job}
                   viewMode={viewMode}
-                  isFavorite={activeTab === "favorites"}
                 />
               ))}
             </div>
