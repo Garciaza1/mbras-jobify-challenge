@@ -87,7 +87,7 @@ const JobList = () => {
     }
 
     if (selectedCategory !== "all" && activeTab !== "favorites") {
-      result = result.filter(job => job.category === selectedCategory);
+      result = result.filter(job => job.category.toLowerCase() === selectedCategory.toLowerCase());
     }
 
     setFilteredJobs(result);
