@@ -40,7 +40,7 @@ func (s *JobService) GetJobsFromRemotive(category string, limit string) ([]model
 	query := baseURL.Query()
 	query.Set("limit", "50")
 
-	if limit != "" {
+	if limit != "" { // da prioridade para o limite da query
 		query.Set("limit", limit)
 	}
 

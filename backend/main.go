@@ -8,8 +8,8 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/gorilla/mux"
 	"github.com/gorilla/handlers"
+	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 )
@@ -31,13 +31,14 @@ func main() {
 	jobHandler := handler.NewJobHandler(jobService)
 
 	router := mux.NewRouter()
-	router.HandleFunc("/api/jobs", jobHandler.GetJobs).Methods("GET")
+	router.HandleFunc("/api/jobs", jobHandler.GetJobs).Methods("GET", "OPTIONS")
+	router.HandleFunc("/api/favorites", jobHandler.GetFavoriteJobs).Methods("GET", "OPTIONS")
+	router.HandleFunc("/api/favorites/toggle", jobHandler.ToggleFavoriteJob).Methods("POST", "OPTIONS")
 
 	allowedOrigins := handlers.AllowedOrigins([]string{"*"})
 	allowedMethods := handlers.AllowedMethods([]string{"GET", "POST", "OPTIONS"})
 	allowedHeaders := handlers.AllowedHeaders([]string{"Content-Type", "Authorization"})
 
-	// Envolve o roteador com o middleware de CORS
 	corsHandler := handlers.CORS(allowedOrigins, allowedMethods, allowedHeaders)(router)
 
 	fmt.Println("Servidor iniciado na porta :8080")
