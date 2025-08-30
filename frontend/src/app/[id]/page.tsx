@@ -34,7 +34,7 @@ export default function JobDetailPage() {
     const fetchJob = async () => {
       try {
         setIsLoading(true);
-        const response = await fetch(`/api/jobs/${params.id}`);
+        const response = await fetch(`/api/jobs?id=${params.id}`);
         
         if (!response.ok) {
           throw new Error('Job não encontrado');
@@ -113,7 +113,7 @@ export default function JobDetailPage() {
           <div className="text-center py-12">
             <h1 className="text-2xl font-semibold text-zinc-900 mb-4">Vaga não encontrada</h1>
             <p className="text-zinc-600 mb-8">{error}</p>
-            <Link href="/jobs">
+            <Link href="/">
               <Button className="bg-zinc-900 hover:bg-zinc-800">
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Voltar para vagas

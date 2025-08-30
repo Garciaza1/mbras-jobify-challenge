@@ -125,6 +125,35 @@ func (s *JobService) UpsertJobs(jobs []models.Job) error {
 	return nil
 }
 
+func (s *JobService) GetJobByID(jobID int64) (*models.Job, error) {
+	query := `SELECT * FROM jobs WHERE job_id = $1;`
+
+	row := s.DB.QueryRow(query, jobID)
+
+	var job models.Job
+	var tags string
+	var createdAt, updatedAt time.Time
+
+	err := row.Scan(
+		&job.ID, &job.Title, &job.Company, &job.Location, &job.Description,
+		&job.JobType, &job.Category, &job.PublicationDate, &job.URL, &tags,
+		&job.IsFavorite, &createdAt, &updatedAt,
+	)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, fmt.Errorf("vaga com ID %d não encontrada", jobID)
+		}
+		return nil, fmt.Errorf("erro ao buscar vaga por ID %d: %v", jobID, err)
+	}
+
+	job.Tags = strings.Split(tags, ",")
+	job.CreatedAt = createdAt
+	job.UpdatedAt = updatedAt
+
+	return &job, nil
+}
+
 func (s *JobService) ToggleFavorite(jobID int64) error {
 	query := `
 		UPDATE jobs

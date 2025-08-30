@@ -143,7 +143,7 @@ const JobCard = ({ job, viewMode = "grid", isFavorite = false }: { job: Job, vie
           <Clock className="h-4 w-4 mr-1" />
           {timeAgo}
         </div>
-        <Link href={`/jobs/${job.id}`}>
+        <Link href={`/${job.id}`}>
           <Button>Ver Detalhes</Button>
         </Link>
       </CardFooter>

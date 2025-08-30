@@ -16,7 +16,6 @@ import Header from "@/components/native/header";
 
 const JobList = () => {
   const [jobs, setJobs] = useState<Job[]>([]);
-  const [favorites, setFavorites] = useState<Job[]>([]);
   const [filteredJobs, setFilteredJobs] = useState<Job[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingFavorites, setIsLoadingFavorites] = useState(false);
@@ -38,7 +37,6 @@ const JobList = () => {
         setIsLoading(true);
         setError(null);
 
-        // Passa a categoria selecionada para o backend (exceto "all")
         const categoryParam = selectedCategory === "all" ? "" : selectedCategory;
         const jobsData = await getJobs("20", categoryParam);
 
@@ -48,13 +46,16 @@ const JobList = () => {
         console.error("Error fetching jobs:", error);
         setError("Erro ao carregar vagas");
         setJobs([]);
+        setFilteredJobs([]);
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchJobs();
-  }, [selectedCategory]); // Recarrega quando a categoria muda
+    if (activeTab === "all") {
+      fetchJobs();
+    }
+  }, [selectedCategory, activeTab]);
 
   useEffect(() => {
     const fetchFavorites = async () => {
@@ -62,10 +63,12 @@ const JobList = () => {
         try {
           setIsLoadingFavorites(true);
           const favoritesData = await getFavorites();
-          setFavorites(favoritesData);
+          setJobs(favoritesData);
+          setFilteredJobs(favoritesData);
         } catch (error) {
           console.error("Error fetching favorites:", error);
-          setFavorites([]);
+          setJobs([]);
+          setFilteredJobs([]);
         } finally {
           setIsLoadingFavorites(false);
         }
@@ -76,22 +79,17 @@ const JobList = () => {
   }, [activeTab]);
 
   useEffect(() => {
-    let result = activeTab === "favorites" ? favorites : jobs;
-
     if (searchQuery) {
-      result = result.filter(job =>
+      const filtered = jobs.filter(job =>
         job.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         job.company_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         job.description.toLowerCase().includes(searchQuery.toLowerCase())
       );
+      setFilteredJobs(filtered);
+    } else {
+      setFilteredJobs(jobs);
     }
-
-    if (selectedCategory !== "all" && activeTab !== "favorites") {
-      result = result.filter(job => job.category.toLowerCase() === selectedCategory.toLowerCase());
-    }
-
-    setFilteredJobs(result);
-  }, [jobs, favorites, searchQuery, selectedCategory, activeTab]);
+  }, [searchQuery, jobs]);
 
   const handleClearFilters = () => {
     setSearchQuery("");
@@ -114,7 +112,6 @@ const JobList = () => {
               </div>
 
               <div className="space-y-6">
-                {/* Tabs para Todos vs Favoritos */}
                 <div className="space-y-3">
                   <Label>Visualizar</Label>
                   <Tabs
@@ -129,7 +126,6 @@ const JobList = () => {
                   </Tabs>
                 </div>
 
-                {/* Filtro de Categoria (só aparece na tab "Todas") */}
                 {activeTab === "all" && (
                   <div className="space-y-3">
                     <Label>Categoria</Label>
@@ -153,7 +149,6 @@ const JobList = () => {
 
         {/* Conteúdo Principal */}
         <main className="flex-1">
-          {/* Barra de pesquisa e controles */}
           <div className="flex flex-col gap-4 mb-8">
             <div className="relative">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
@@ -173,13 +168,7 @@ const JobList = () => {
                   ) : (
                     <Bookmark className="h-3 w-3" />
                   )}
-                  {filteredJobs.length > 0 ? (
-                    <span>
-                      {filteredJobs.length} {activeTab === "favorites" ? "favoritas" : "vagas"} encontradas
-                    </span>
-                  ) : (
-                    <span>Nenhuma {activeTab === "favorites" ? "favorita" : "vaga"} encontrada</span>
-                  )}
+                  {filteredJobs.length} {activeTab === "favorites" ? "favoritas" : "vagas"} encontradas
                 </Badge>
                 <Button variant="outline" size="sm" className="md:hidden">
                   <Filter className="mr-2 h-4 w-4" />
@@ -228,7 +217,7 @@ const JobList = () => {
                   key={job.id}
                   job={job}
                   viewMode={viewMode}
-                  isFavorite={job.is_favorite}
+                  isFavorite={activeTab === "favorites"}
                 />
               ))}
             </div>
